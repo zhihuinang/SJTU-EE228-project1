@@ -218,7 +218,7 @@ if __name__ == '__main__':
                         help='subset of MedMNIST',
                         type=str)
     parser.add_argument('--input_root',
-                        default='./input',
+                        default='../data',
                         help='input root, the source of dataset files',
                         type=str)
     parser.add_argument('--output_root',
