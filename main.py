@@ -22,17 +22,14 @@ def train(model,optimizer,loss,train_loader,device,task):
         inputs = inputs.to(device)
         optimizer.zero_grad()
         outputs = model(inputs)
-
         if task == 'multi-label, binary-class':
             labels = labels.to(torch.float32).to(device)
             err = loss(outputs, labels)
         else:
             labels = labels.squeeze().long().to(device)
             err = loss(outputs, labels)
-
         err.backward()
         optimizer.step()
-
 
 def val(model, val_loader, device, val_auc_list, task, dir_path, epoch):
     model.eval()
@@ -134,11 +131,10 @@ def main(args):
     task = info['task']
     n_channels = info['n_channels']
     n_classes = len(info['label'])
-
     lr = 0.001
     batch_size = 128
     val_auc_list = []
-    dir_path = os.path.join(output_root, '%s_checkpoints' % (data_name))
+    dir_path = os.path.join(output_root, '%s_checkpoints' % (data_name+"_"+model_type))
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
 
@@ -174,8 +170,8 @@ def main(args):
     if model_type == 'ResNet18':
         model = ResNet18(in_ch=n_channels,class_num=n_classes)
     else:
-        model = ResNet50(in_ch=n_channels,class_num=n_channels)
-
+        model = ResNet50(in_ch=n_channels,class_num=n_classes)
+    model = model.to(device)
     if task == 'multi-label, binary-class':
         loss = nn.BCEWithLogitsLoss()
     else:
@@ -218,15 +214,15 @@ if __name__ == '__main__':
                         help='subset of MedMNIST',
                         type=str)
     parser.add_argument('--input_root',
-                        default='../data',
+                        default='../../data',
                         help='input root, the source of dataset files',
                         type=str)
     parser.add_argument('--output_root',
-                        default='./output',
+                        default='../output',
                         help='output root, where to save models and results',
                         type=str)
     parser.add_argument('--num_epoch',
-                        default=100,
+                        default=5,
                         help='num of epochs of training',
                         type=int)
     parser.add_argument('--download',

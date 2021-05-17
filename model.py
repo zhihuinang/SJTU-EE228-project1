@@ -22,8 +22,6 @@ class base_block(nn.Module):
     def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)),inplace=True)
         out = self.bn2(self.conv2(out))
-        print(out.shape)
-        #print(self.Res(x).shape)
         out += self.Res(x)
         out = F.relu(out,inplace=True)
         return out
@@ -41,7 +39,7 @@ class bottleneck(nn.Module):
 
         self.Res = nn.Sequential()
         if stride != 1 or in_ch != 4*256:
-            self.shortcut = nn.Sequential(
+            self.Res = nn.Sequential(
                 nn.Conv2d(in_ch, 4*out_ch,
                           kernel_size=1, stride=stride, bias=False),
                 nn.BatchNorm2d(4*out_ch)
@@ -95,14 +93,14 @@ class ResNet50(nn.Module):
         super(ResNet50,self).__init__()
         num_blocks = [3,4,6,3]
         self.in_ch = 64
-        self.conv1 = nn.Conv2d(in_ch,64,kernel_size=5,stride=2,padding=1,bias=False)
+        self.conv1 = nn.Conv2d(in_ch,64,kernel_size=5,stride=1,padding=1,bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         #self.pool1 = nn.MaxPool2d(kernel_size=3,stride=2)
         self.layer1 = self._make_layer(64, num_blocks[0], stride=1)
         self.layer2 = self._make_layer(128, num_blocks[1], stride=2)
         self.layer3 = self._make_layer(256, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(512, num_blocks[3], stride=2)
-        self.linear = nn.Linear(512, class_num)
+        self.linear = nn.Linear(2048, class_num)
 
 
     def _make_layer(self, planes, num_blocks, stride):
@@ -110,7 +108,7 @@ class ResNet50(nn.Module):
             layers = []
             for stride in strides:
                 layers.append(bottleneck(self.in_ch, planes, stride))
-                self.in_ch = planes
+                self.in_ch = planes*4
             return nn.Sequential(*layers)
 
     def forward(self, x):
